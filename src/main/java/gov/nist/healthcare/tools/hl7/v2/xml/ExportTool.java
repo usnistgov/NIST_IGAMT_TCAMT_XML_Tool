@@ -66,8 +66,8 @@ public class ExportTool {
 
 		String profileXMLStr = this.serializeProfileToDoc(profile, metadata, segmentsMap, datatypesMap, tablesMap)
 				.toXML();
-		String valueSetXMLStr = this.serializeTableLibraryUsingMapToXML(profile, metadata, tablesMap);
-		String constraintXMLStr = this.serializeConstraintsUsingMapToXML(profile, metadata, segmentsMap, datatypesMap,
+		String valueSetXMLStr = this.serializeTableXML(profile, metadata, tablesMap);
+		String constraintXMLStr = this.serializeConstraintsXML(profile, metadata, segmentsMap, datatypesMap,
 				tablesMap);
 
 		this.generateProfileIS(out, profileXMLStr);
@@ -79,7 +79,7 @@ public class ExportTool {
 		return new ByteArrayInputStream(bytes);
 	}
 
-	private String serializeConstraintsUsingMapToXML(Profile profile, DocumentMetaData metadata,
+	public String serializeConstraintsXML(Profile profile, DocumentMetaData metadata,
 			Map<String, Segment> segmentsMap, Map<String, Datatype> datatypesMap, Map<String, Table> tablesMap) {
 
 		Constraints predicates = findAllPredicates(profile, segmentsMap, datatypesMap, tablesMap);
@@ -469,7 +469,7 @@ public class ExportTool {
 		return constraints;
 	}
 
-	private String serializeTableLibraryUsingMapToXML(Profile profile, DocumentMetaData metadata,
+	public String serializeTableXML(Profile profile, DocumentMetaData metadata,
 			Map<String, Table> tablesMap) {
 
 		nu.xom.Element elmTableLibrary = new nu.xom.Element("ValueSetLibrary");
@@ -588,7 +588,7 @@ public class ExportTool {
 		return elmTableLibrary.toXML();
 	}
 
-	private nu.xom.Document serializeProfileToDoc(Profile profile, DocumentMetaData metadata,
+	public nu.xom.Document serializeProfileToDoc(Profile profile, DocumentMetaData metadata,
 			Map<String, Segment> segmentsMap, Map<String, Datatype> datatypesMap, Map<String, Table> tablesMap) {
 
 		nu.xom.Element e = new nu.xom.Element("ConformanceProfile");
