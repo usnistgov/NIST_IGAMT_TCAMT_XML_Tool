@@ -27,6 +27,7 @@ import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.DynamicMappingItem;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Field;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Group;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Message;
+import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Messages;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Profile;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.ProfileMetaData;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Segment;
@@ -54,6 +55,8 @@ import nu.xom.ValidityException;
 
 public class ExportTool {
 
+	
+
 	public InputStream exportXMLAsValidationFormatForSelectedMessages(Profile profile, DocumentMetaData metadata,
 			Map<String, Segment> segmentsMap, Map<String, Datatype> datatypesMap, Map<String, Table> tablesMap)
 			throws CloneNotSupportedException, IOException {
@@ -67,8 +70,7 @@ public class ExportTool {
 		String profileXMLStr = this.serializeProfileToDoc(profile, metadata, segmentsMap, datatypesMap, tablesMap)
 				.toXML();
 		String valueSetXMLStr = this.serializeTableXML(profile, metadata, tablesMap);
-		String constraintXMLStr = this.serializeConstraintsXML(profile, metadata, segmentsMap, datatypesMap,
-				tablesMap);
+		String constraintXMLStr = this.serializeConstraintsXML(profile, metadata, segmentsMap, datatypesMap, tablesMap);
 
 		this.generateProfileIS(out, profileXMLStr);
 		this.generateValueSetIS(out, valueSetXMLStr);
@@ -79,8 +81,8 @@ public class ExportTool {
 		return new ByteArrayInputStream(bytes);
 	}
 
-	public String serializeConstraintsXML(Profile profile, DocumentMetaData metadata,
-			Map<String, Segment> segmentsMap, Map<String, Datatype> datatypesMap, Map<String, Table> tablesMap) {
+	public String serializeConstraintsXML(Profile profile, DocumentMetaData metadata, Map<String, Segment> segmentsMap,
+			Map<String, Datatype> datatypesMap, Map<String, Table> tablesMap) {
 
 		Constraints predicates = findAllPredicates(profile, segmentsMap, datatypesMap, tablesMap);
 		Constraints conformanceStatements = findAllConformanceStatement(profile, segmentsMap, datatypesMap, tablesMap);
@@ -469,8 +471,7 @@ public class ExportTool {
 		return constraints;
 	}
 
-	public String serializeTableXML(Profile profile, DocumentMetaData metadata,
-			Map<String, Table> tablesMap) {
+	public String serializeTableXML(Profile profile, DocumentMetaData metadata, Map<String, Table> tablesMap) {
 
 		nu.xom.Element elmTableLibrary = new nu.xom.Element("ValueSetLibrary");
 
@@ -745,10 +746,11 @@ public class ExportTool {
 				if (table != null) {
 					for (Code c : table.getCodes()) {
 						if (c.getValue() != null && table.getHl7Version() != null) {
-							Datatype d = this.findHL7DatatypeByNameAndVesion(datatypesMap, c.getValue(), table.getHl7Version());
+							Datatype d = this.findHL7DatatypeByNameAndVesion(datatypesMap, c.getValue(),
+									table.getHl7Version());
 
-							 if(d != null){
-								 dm.put(c.getValue(), d);
+							if (d != null) {
+								dm.put(c.getValue(), d);
 							}
 						}
 					}
@@ -883,10 +885,12 @@ public class ExportTool {
 		return elmSegment;
 	}
 
-	private Datatype findHL7DatatypeByNameAndVesion(Map<String, Datatype> datatypesMap, String value, String hl7Version) {
-		for(String key:datatypesMap.keySet()){
+	private Datatype findHL7DatatypeByNameAndVesion(Map<String, Datatype> datatypesMap, String value,
+			String hl7Version) {
+		for (String key : datatypesMap.keySet()) {
 			Datatype d = datatypesMap.get(key);
-			if(d.getName().equals(value) && d.getHl7Version().equals(hl7Version)) return d;
+			if (d.getName().equals(value) && d.getHl7Version().equals(hl7Version))
+				return d;
 		}
 		return null;
 	}
@@ -974,6 +978,11 @@ public class ExportTool {
 
 	private nu.xom.Element serializeSegmentRef(SegmentRef segmentRef, Map<String, Segment> segmentsMap) {
 		Segment s = segmentsMap.get(segmentRef.getRef().getId());
+		System.out.println("------------");
+		System.out.println(segmentRef.getRef().getId());
+		System.out.println(s.getId());
+		System.out.println(s.getLabel());
+		System.out.println(s.getHl7Version());
 		nu.xom.Element elmSegment = new nu.xom.Element("Segment");
 		elmSegment.addAttribute(
 				new Attribute("Ref", this.str(s.getLabel() + "_" + s.getHl7Version().replaceAll("\\.", "-"))));
