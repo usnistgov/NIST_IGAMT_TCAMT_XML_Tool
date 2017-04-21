@@ -2,6 +2,9 @@ package gov.nist.healthcare.tools.hl7.v2.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
@@ -15,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -27,7 +31,6 @@ import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.DynamicMappingItem;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Field;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Group;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Message;
-import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Messages;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Profile;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.ProfileMetaData;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Segment;
@@ -55,7 +58,119 @@ import nu.xom.ValidityException;
 
 public class ExportTool {
 
+	public void unZipIt(String zipFile, String outputFolder){
+
+	     byte[] buffer = new byte[1024];
+
+	     try{
+
+	    	//create output directory is not exists
+	    	File folder = new File(outputFolder);
+	    	if(!folder.exists()){
+	    		folder.mkdir();
+	    	}
+
+	    	//get the zip file content
+	    	ZipInputStream zis =
+	    		new ZipInputStream(new FileInputStream(zipFile));
+	    	//get the zipped file list entry
+	    	ZipEntry ze = zis.getNextEntry();
+
+	    	while(ze!=null){
+
+	    	   String fileName = ze.getName();
+	           File newFile = new File(outputFolder + File.separator + fileName);
+
+	           System.out.println("file unzip : "+ newFile.getAbsoluteFile());
+
+	            //create all non exists folders
+	            //else you will hit FileNotFoundException for compressed folder
+	            new File(newFile.getParent()).mkdirs();
+
+	            FileOutputStream fos = new FileOutputStream(newFile);
+
+	            int len;
+	            while ((len = zis.read(buffer)) > 0) {
+	       		fos.write(buffer, 0, len);
+	            }
+
+	            fos.close();
+	            ze = zis.getNextEntry();
+	    	}
+
+	        zis.closeEntry();
+	    	zis.close();
+
+	    	System.out.println("Done");
+
+	    }catch(IOException ex){
+	       ex.printStackTrace();
+	    }
+	   }
 	
+	public void zipIt(String zipFile, String SOURCE_FOLDER){
+		List<String> fileList = new ArrayList<String>();
+		
+	     byte[] buffer = new byte[1024];
+
+	     try{
+
+	    	FileOutputStream fos = new FileOutputStream(zipFile);
+	    	ZipOutputStream zos = new ZipOutputStream(fos);
+
+	    	System.out.println("Output to Zip : " + zipFile);
+
+	    	for(String file : fileList){
+
+	    		System.out.println("File Added : " + file);
+	    		ZipEntry ze= new ZipEntry(file);
+	        	zos.putNextEntry(ze);
+
+	        	FileInputStream in =
+	                       new FileInputStream(SOURCE_FOLDER + File.separator + file);
+
+	        	int len;
+	        	while ((len = in.read(buffer)) > 0) {
+	        		zos.write(buffer, 0, len);
+	        	}
+
+	        	in.close();
+	    	}
+
+	    	zos.closeEntry();
+	    	//remember close it
+	    	zos.close();
+
+	    	System.out.println("Done");
+	    }catch(IOException ex){
+	       ex.printStackTrace();
+	    }
+	   }
+	
+	public void generateFileList(File node, List<String> fileList, String SOURCE_FOLDER){
+
+    	//add file only
+	if(node.isFile()){
+		fileList.add(generateZipEntry(node.getAbsoluteFile().toString(), SOURCE_FOLDER));
+	}
+
+	if(node.isDirectory()){
+		String[] subNote = node.list();
+		for(String filename : subNote){
+			generateFileList(new File(node, filename), fileList, SOURCE_FOLDER);
+		}
+	}
+
+    }
+
+    /**
+     * Format the file path for zip
+     * @param file file path
+     * @return Formatted file path
+     */
+    private String generateZipEntry(String file, String SOURCE_FOLDER){
+    	return file.substring(SOURCE_FOLDER.length()+1, file.length());
+    }
 
 	public InputStream exportXMLAsValidationFormatForSelectedMessages(Profile profile, DocumentMetaData metadata,
 			Map<String, Segment> segmentsMap, Map<String, Datatype> datatypesMap, Map<String, Table> tablesMap)
