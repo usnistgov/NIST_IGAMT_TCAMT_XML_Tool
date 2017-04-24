@@ -208,11 +208,8 @@ public class ExportTool {
 		schemaDecl.setNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		e.addAttribute(schemaDecl);
 
-		if (profile.getConstraintId() == null || profile.getConstraintId().equals("")) {
-			e.addAttribute(new Attribute("UUID", UUID.randomUUID().toString()));
-		} else {
-			e.addAttribute(new Attribute("UUID", profile.getConstraintId()));
-		}
+		e.addAttribute(new Attribute("UUID", profile.getId()));
+	
 
 		nu.xom.Element elmMetaData = new nu.xom.Element("MetaData");
 		if (metadata == null) {
@@ -275,7 +272,7 @@ public class ExportTool {
 				}
 			}
 		}
-		mContext.setByNameOrByIDs(byNameOrByIDs);
+		gContext.setByNameOrByIDs(byNameOrByIDs);
 
 		byNameOrByIDs = new HashSet<ByNameOrByID>();
 		for (String key : segmentsMap.keySet()) {
@@ -453,7 +450,7 @@ public class ExportTool {
 		for (ByNameOrByID byNameOrByIDObj : predicates.getGroups().getByNameOrByIDs()) {
 			nu.xom.Element groupConstaint = this.serializeByNameOrByID(byNameOrByIDObj);
 			if (groupConstaint != null)
-				predicates_segment_Elm.appendChild(groupConstaint);
+				predicates_group_Elm.appendChild(groupConstaint);
 		}
 		predicates_Elm.appendChild(predicates_group_Elm);
 
@@ -552,7 +549,7 @@ public class ExportTool {
 				}
 			}
 		}
-		mContext.setByNameOrByIDs(byNameOrByIDs);
+		gContext.setByNameOrByIDs(byNameOrByIDs);
 
 		byNameOrByIDs = new HashSet<ByNameOrByID>();
 		for (String key : segmentsMap.keySet()) {
@@ -594,8 +591,7 @@ public class ExportTool {
 				"https://raw.githubusercontent.com/Jungyubw/NIST_healthcare_hl7_v2_profile_schema/master/Schema/NIST%20Validation%20Schema/ValueSets.xsd");
 		schemaDecl.setNamespace("xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		elmTableLibrary.addAttribute(schemaDecl);
-
-		elmTableLibrary.addAttribute(new Attribute("ValueSetLibraryIdentifier", UUID.randomUUID().toString()));
+		elmTableLibrary.addAttribute(new Attribute("ValueSetLibraryIdentifier", profile.getId()));
 
 		nu.xom.Element elmMetaData = new nu.xom.Element("MetaData");
 		if (metadata == null) {
@@ -719,8 +715,6 @@ public class ExportTool {
 		nu.xom.Element ss = new nu.xom.Element("Segments");
 		for (String key : segmentsMap.keySet()) {
 			Segment s = segmentsMap.get(key);
-			System.out.println(key);
-			System.out.println(s.getId());
 			ss.appendChild(this.serializeSegment(s, tablesMap, datatypesMap));
 		}
 		e.appendChild(ss);
@@ -740,8 +734,7 @@ public class ExportTool {
 	private nu.xom.Element serializeDatatypeForValidation(Datatype d, Map<String, Table> tablesMap,
 			Map<String, Datatype> datatypesMap) {
 		nu.xom.Element elmDatatype = new nu.xom.Element("Datatype");
-		elmDatatype.addAttribute(
-				new Attribute("ID", this.str(d.getLabel() + "_" + d.getHl7Version().replaceAll("\\.", "-"))));
+		elmDatatype.addAttribute(new Attribute("ID", this.str(d.getLabel() + "_" + d.getHl7Version().replaceAll("\\.", "-"))));
 		elmDatatype.addAttribute(new Attribute("Name", this.str(d.getName())));
 		elmDatatype.addAttribute(new Attribute("Label", this.str(d.getLabel())));
 		elmDatatype.addAttribute(new Attribute("Description", this.str(d.getDescription())));
@@ -870,10 +863,11 @@ public class ExportTool {
 						}
 					}
 				}
-
-				for (DynamicMappingItem item : s.getDynamicMappingDefinition().getDynamicMappingItems()) {
-					if (item.getFirstReferenceValue() != null && item.getDatatypeId() != null)
-						dm.put(item.getFirstReferenceValue(), datatypesMap.get(item.getDatatypeId()));
+				if(s.getDynamicMappingDefinition() != null){
+					for (DynamicMappingItem item : s.getDynamicMappingDefinition().getDynamicMappingItems()) {
+						if (item.getFirstReferenceValue() != null && item.getDatatypeId() != null)
+							dm.put(item.getFirstReferenceValue(), datatypesMap.get(item.getDatatypeId()));
+					}	
 				}
 			}
 			if (secondReference != null) {
@@ -1067,7 +1061,7 @@ public class ExportTool {
 
 	private nu.xom.Element serializeGroup(Group group, Map<String, Segment> segmentsMap) {
 		nu.xom.Element elmGroup = new nu.xom.Element("Group");
-		elmGroup.addAttribute(new Attribute("ID", this.str(group.getName())));
+		elmGroup.addAttribute(new Attribute("ID", this.str(group.getId())));
 		elmGroup.addAttribute(new Attribute("Name", this.str(group.getName())));
 		elmGroup.addAttribute(new Attribute("Usage", this.str(group.getUsage().value())));
 		elmGroup.addAttribute(new Attribute("Min", this.str(group.getMin() + "")));
