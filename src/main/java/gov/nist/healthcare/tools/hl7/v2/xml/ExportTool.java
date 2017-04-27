@@ -16,7 +16,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -80,9 +79,6 @@ public class ExportTool {
 
 	    	   String fileName = ze.getName();
 	           File newFile = new File(outputFolder + File.separator + fileName);
-
-	           System.out.println("file unzip : "+ newFile.getAbsoluteFile());
-
 	            //create all non exists folders
 	            //else you will hit FileNotFoundException for compressed folder
 	            new File(newFile.getParent()).mkdirs();
@@ -100,9 +96,6 @@ public class ExportTool {
 
 	        zis.closeEntry();
 	    	zis.close();
-
-	    	System.out.println("Done");
-
 	    }catch(IOException ex){
 	       ex.printStackTrace();
 	    }
@@ -118,11 +111,7 @@ public class ExportTool {
 	    	FileOutputStream fos = new FileOutputStream(zipFile);
 	    	ZipOutputStream zos = new ZipOutputStream(fos);
 
-	    	System.out.println("Output to Zip : " + zipFile);
-
 	    	for(String file : fileList){
-
-	    		System.out.println("File Added : " + file);
 	    		ZipEntry ze= new ZipEntry(file);
 	        	zos.putNextEntry(ze);
 
@@ -140,8 +129,6 @@ public class ExportTool {
 	    	zos.closeEntry();
 	    	//remember close it
 	    	zos.close();
-
-	    	System.out.println("Done");
 	    }catch(IOException ex){
 	       ex.printStackTrace();
 	    }
@@ -851,12 +838,14 @@ public class ExportTool {
 
 			if (referenceTableId != null) {
 				Table table = tablesMap.get(referenceTableId);
+				String hl7Version = null;
+				hl7Version = table.getHl7Version();
+				if(hl7Version == null) hl7Version = s.getHl7Version();
+				
 				if (table != null) {
 					for (Code c : table.getCodes()) {
-						if (c.getValue() != null && table.getHl7Version() != null) {
-							Datatype d = this.findHL7DatatypeByNameAndVesion(datatypesMap, c.getValue(),
-									table.getHl7Version());
-
+						if (c.getValue() != null) {
+							Datatype d = this.findHL7DatatypeByNameAndVesion(datatypesMap, c.getValue(), hl7Version);
 							if (d != null) {
 								dm.put(c.getValue(), d);
 							}
@@ -994,11 +983,10 @@ public class ExportTool {
 		return elmSegment;
 	}
 
-	private Datatype findHL7DatatypeByNameAndVesion(Map<String, Datatype> datatypesMap, String value,
-			String hl7Version) {
+	private Datatype findHL7DatatypeByNameAndVesion(Map<String, Datatype> datatypesMap, String value, String hl7Version) {
 		for (String key : datatypesMap.keySet()) {
 			Datatype d = datatypesMap.get(key);
-			if (d.getName().equals(value) && d.getHl7Version().equals(hl7Version))
+			if (d.getLabel().equals(value) && d.getHl7Version().equals(hl7Version))
 				return d;
 		}
 		return null;
@@ -1087,11 +1075,6 @@ public class ExportTool {
 
 	private nu.xom.Element serializeSegmentRef(SegmentRef segmentRef, Map<String, Segment> segmentsMap) {
 		Segment s = segmentsMap.get(segmentRef.getRef().getId());
-		System.out.println("------------");
-		System.out.println(segmentRef.getRef().getId());
-		System.out.println(s.getId());
-		System.out.println(s.getLabel());
-		System.out.println(s.getHl7Version());
 		nu.xom.Element elmSegment = new nu.xom.Element("Segment");
 		elmSegment.addAttribute(
 				new Attribute("Ref", this.str(s.getLabel() + "_" + s.getHl7Version().replaceAll("\\.", "-"))));
@@ -1264,12 +1247,9 @@ public class ExportTool {
 			}
 		}
 		for (String key : toBeAddedDTs.keySet()) {
-			System.out.println(key);
 			datatypesMap.put(key, toBeAddedDTs.get(key));
 		}
 		for (String key : toBeAddedSegs.keySet()) {
-			System.out.println(key);
-			System.out.println(toBeAddedSegs.get(key).getLabel());
 			segmentsMap.put(key, toBeAddedSegs.get(key));
 		}
 	}
@@ -1351,7 +1331,6 @@ public class ExportTool {
 					toBeAddedSegs);
 		} else {
 			SegmentRef sr = (SegmentRef) srog;
-			System.out.println("REF id:::" + sr.getRef().getId());
 			Segment s = segmentsMap.get(sr.getRef().getId());
 			if (s == null)
 				s = toBeAddedSegs.get(sr.getRef().getId());
@@ -1391,8 +1370,6 @@ public class ExportTool {
 					ext2 = "";
 				copyD.setExt(ext2 + "_A" + randumNum);
 				toBeAddedDTs.put(copyD.getId(), copyD);
-				System.out.println("------WOOOOO");
-				System.out.println(copyD.getId());
 				f.getDatatype().setId(copyD.getId());
 				visitDatatype(pathList, copyD, datatypesMap, valueSetBindings, toBeAddedDTs);
 			}
