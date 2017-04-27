@@ -619,7 +619,6 @@ public class ExportTool {
 					} else {
 						elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier()));
 					}
-					elmBindingIdentifier.appendChild(t.getBindingIdentifier());
 					elmNoValidation.appendChild(elmBindingIdentifier);
 				}
 				
