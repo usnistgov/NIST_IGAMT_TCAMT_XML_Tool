@@ -604,13 +604,20 @@ public class ExportTool {
 			if (profile.getMetaData().getTopics() != null && !profile.getMetaData().getTopics().equals(""))
 				elmMetaData.addAttribute(new Attribute("Topics", this.str(profile.getMetaData().getTopics())));
 		}
-
+		
+		nu.xom.Element elmNoValidation = new nu.xom.Element("NoValidation");
 		HashMap<String, nu.xom.Element> valueSetDefinitionsMap = new HashMap<String, nu.xom.Element>();
 
 		for (String key : tablesMap.keySet()) {
 			Table t = tablesMap.get(key);
 
 			if (t != null) {
+				if (t.getCodes() == null || t.getCodes().size() == 0 || (t.getCodes().size() == 1 && t.getCodes().get(0).getValue().equals("..."))) {
+					nu.xom.Element elmBindingIdentifier = new nu.xom.Element("BindingIdentifier");
+					elmBindingIdentifier.appendChild(t.getBindingIdentifier());
+					elmNoValidation.appendChild(elmBindingIdentifier);
+				}
+				
 				nu.xom.Element elmValueSetDefinition = new nu.xom.Element("ValueSetDefinition");
 				if (t.getHl7Version() != null && !t.getHl7Version().equals("")) {
 					elmValueSetDefinition.addAttribute(new Attribute("BindingIdentifier",
@@ -679,6 +686,7 @@ public class ExportTool {
 		}
 
 		elmTableLibrary.appendChild(elmMetaData);
+		elmTableLibrary.appendChild(elmNoValidation);
 
 		for (nu.xom.Element elmValueSetDefinitions : valueSetDefinitionsMap.values()) {
 			elmTableLibrary.appendChild(elmValueSetDefinitions);
