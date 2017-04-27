@@ -614,6 +614,11 @@ public class ExportTool {
 			if (t != null) {
 				if (t.getCodes() == null || t.getCodes().size() == 0 || (t.getCodes().size() == 1 && t.getCodes().get(0).getValue().equals("..."))) {
 					nu.xom.Element elmBindingIdentifier = new nu.xom.Element("BindingIdentifier");
+					if (t.getHl7Version() != null && !t.getHl7Version().equals("")) {
+						elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier() + "_" + t.getHl7Version().replaceAll("\\.", "-")));
+					} else {
+						elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier()));
+					}
 					elmBindingIdentifier.appendChild(t.getBindingIdentifier());
 					elmNoValidation.appendChild(elmBindingIdentifier);
 				}
