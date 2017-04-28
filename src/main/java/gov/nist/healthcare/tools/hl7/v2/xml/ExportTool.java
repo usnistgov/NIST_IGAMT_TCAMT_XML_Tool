@@ -785,9 +785,6 @@ public class ExportTool {
 								}else{
 									bindingString = bindingString + table.getBindingIdentifier() + "_" + table.getHl7Version().replaceAll("\\.", "-") + ":";						
 								}
-								
-								
-								bindingString = bindingString + table.getBindingIdentifier() + "_" + table.getHl7Version().replaceAll("\\.", "-") + ":";
 							} else {
 								bindingString = bindingString + table.getBindingIdentifier() + ":";
 							}
