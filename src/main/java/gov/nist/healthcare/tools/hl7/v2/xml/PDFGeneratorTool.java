@@ -14,13 +14,7 @@ import java.util.zip.ZipOutputStream;
 
 public class PDFGeneratorTool {
 
-	public static void main(String[] args) {
-		PDFGeneratorTool gen = new PDFGeneratorTool();
-		gen.gen("/Users/jungyubw/Downloads/CDC Immunization Related Requirements Test Plan (CNI) v5.2");
-	}
-
 	public void unZipIt(String zipFile, String outputFolder) {
-
 		byte[] buffer = new byte[1024];
 
 		try {
