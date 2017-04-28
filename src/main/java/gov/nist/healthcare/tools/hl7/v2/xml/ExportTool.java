@@ -615,7 +615,11 @@ public class ExportTool {
 				if (t.getCodes() == null || t.getCodes().size() == 0 || (t.getCodes().size() == 1 && t.getCodes().get(0).getValue().equals("..."))) {
 					nu.xom.Element elmBindingIdentifier = new nu.xom.Element("BindingIdentifier");
 					if (t.getHl7Version() != null && !t.getHl7Version().equals("")) {
-						elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier() + "_" + t.getHl7Version().replaceAll("\\.", "-")));
+						if(t.getBindingIdentifier().startsWith("0396") || t.getBindingIdentifier().startsWith("HL70396")){
+							elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier()));
+						}else{
+							elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier() + "_" + t.getHl7Version().replaceAll("\\.", "-")));							
+						}
 					} else {
 						elmBindingIdentifier.appendChild(this.str(t.getBindingIdentifier()));
 					}
@@ -624,11 +628,14 @@ public class ExportTool {
 				
 				nu.xom.Element elmValueSetDefinition = new nu.xom.Element("ValueSetDefinition");
 				if (t.getHl7Version() != null && !t.getHl7Version().equals("")) {
-					elmValueSetDefinition.addAttribute(new Attribute("BindingIdentifier",
-							this.str(t.getBindingIdentifier() + "_" + t.getHl7Version().replaceAll("\\.", "-"))));
+					if(t.getBindingIdentifier().startsWith("0396") || t.getBindingIdentifier().startsWith("HL70396")){
+						elmValueSetDefinition.addAttribute(new Attribute("BindingIdentifier", this.str(t.getBindingIdentifier())));
+					}else{
+						elmValueSetDefinition.addAttribute(new Attribute("BindingIdentifier", this.str(t.getBindingIdentifier() + "_" + t.getHl7Version().replaceAll("\\.", "-"))));						
+					}
+				
 				} else {
-					elmValueSetDefinition
-							.addAttribute(new Attribute("BindingIdentifier", this.str(t.getBindingIdentifier())));
+					elmValueSetDefinition.addAttribute(new Attribute("BindingIdentifier", this.str(t.getBindingIdentifier())));
 				}
 
 				elmValueSetDefinition.addAttribute(new Attribute("Name", this.str(t.getName())));
@@ -773,8 +780,14 @@ public class ExportTool {
 						if (table != null && table.getBindingIdentifier() != null
 								&& !table.getBindingIdentifier().equals("")) {
 							if (table.getHl7Version() != null && !table.getHl7Version().equals("")) {
-								bindingString = bindingString + table.getBindingIdentifier() + "_"
-										+ table.getHl7Version().replaceAll("\\.", "-") + ":";
+								if(table.getBindingIdentifier().startsWith("0396") || table.getBindingIdentifier().startsWith("HL70396")){
+									bindingString = bindingString + table.getBindingIdentifier() + ":";
+								}else{
+									bindingString = bindingString + table.getBindingIdentifier() + "_" + table.getHl7Version().replaceAll("\\.", "-") + ":";						
+								}
+								
+								
+								bindingString = bindingString + table.getBindingIdentifier() + "_" + table.getHl7Version().replaceAll("\\.", "-") + ":";
 							} else {
 								bindingString = bindingString + table.getBindingIdentifier() + ":";
 							}
@@ -956,11 +969,13 @@ public class ExportTool {
 					Table table = tablesMap.get(binding.getTableId());
 					bindingStrength = binding.getBindingStrength().toString();
 					bindingLocation = binding.getBindingLocation();
-					if (table != null && table.getBindingIdentifier() != null
-							&& !table.getBindingIdentifier().equals("")) {
+					if (table != null && table.getBindingIdentifier() != null && !table.getBindingIdentifier().equals("")) {
 						if (table.getHl7Version() != null && !table.getHl7Version().equals("")) {
-							bindingString = bindingString + table.getBindingIdentifier() + "_"
-									+ table.getHl7Version().replaceAll("\\.", "-") + ":";
+							if(table.getBindingIdentifier().startsWith("0396") || table.getBindingIdentifier().startsWith("HL70396")){
+								bindingString = bindingString + table.getBindingIdentifier() + ":";
+							}else{
+								bindingString = bindingString + table.getBindingIdentifier() + "_" + table.getHl7Version().replaceAll("\\.", "-") + ":";						
+							}
 						} else {
 							bindingString = bindingString + table.getBindingIdentifier() + ":";
 						}
