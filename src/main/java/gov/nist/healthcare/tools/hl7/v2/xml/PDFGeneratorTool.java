@@ -154,7 +154,6 @@ public class PDFGeneratorTool {
 							String pdfFileName = file.getAbsolutePath().replace(".html", ".pdf");
 							genPDF(htmlFileName, pdfFileName);
 						}
-
 					}
 				} else if (file.isDirectory()) {
 					gen(file.getCanonicalPath().toString());
