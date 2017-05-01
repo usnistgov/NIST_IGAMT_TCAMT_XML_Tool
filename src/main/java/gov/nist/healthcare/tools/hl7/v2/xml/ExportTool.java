@@ -743,7 +743,12 @@ public class ExportTool {
 		elmDatatype.addAttribute(new Attribute("ID", this.str(d.getLabel() + "_" + d.getHl7Version().replaceAll("\\.", "-"))));
 		elmDatatype.addAttribute(new Attribute("Name", this.str(d.getName())));
 		elmDatatype.addAttribute(new Attribute("Label", this.str(d.getLabel())));
-		elmDatatype.addAttribute(new Attribute("Description", this.str(d.getDescription())));
+		if(d.getDescription() == null || d.getDescription().equals("")){
+			elmDatatype.addAttribute(new Attribute("Description", "NoDesc"));
+		}else{
+			elmDatatype.addAttribute(new Attribute("Description", this.str(d.getDescription())));	
+		}
+		
 
 		if (d.getComponents() != null) {
 
@@ -759,11 +764,20 @@ public class ExportTool {
 				nu.xom.Element elmComponent = new nu.xom.Element("Component");
 				elmComponent.addAttribute(new Attribute("Name", this.str(c.getName())));
 				elmComponent.addAttribute(new Attribute("Usage", this.str(c.getUsage().toString())));
-				elmComponent.addAttribute(new Attribute("Datatype", this.str(componentDatatype.getLabel() + "_"
-						+ componentDatatype.getHl7Version().replaceAll("\\.", "-"))));
-				elmComponent.addAttribute(new Attribute("MinLength", "" + c.getMinLength()));
-				if (c.getMaxLength() != null && !c.getMaxLength().equals(""))
-					elmComponent.addAttribute(new Attribute("MaxLength", this.str(c.getMaxLength())));
+				elmComponent.addAttribute(new Attribute("Datatype", this.str(componentDatatype.getLabel() + "_" + componentDatatype.getHl7Version().replaceAll("\\.", "-"))));
+				if (c.getMinLength() == null || c.getMinLength().equals("") || c.getMinLength().equals("NA")){
+					elmComponent.addAttribute(new Attribute("MinLength", "NA"));
+					elmComponent.addAttribute(new Attribute("MaxLength", "NA"));
+				}else{
+					if(c.getMaxLength() != null && !c.getMaxLength().equals("")){
+						elmComponent.addAttribute(new Attribute("MinLength", "" +  c.getMinLength()));		
+						elmComponent.addAttribute(new Attribute("MaxLength", this.str(c.getMaxLength())));
+					}else {
+						elmComponent.addAttribute(new Attribute("MinLength", "NA"));
+						elmComponent.addAttribute(new Attribute("MaxLength", "NA"));
+					}
+				}
+
 				if (c.getConfLength() != null && !c.getConfLength().equals(""))
 					elmComponent.addAttribute(new Attribute("ConfLength", this.str(c.getConfLength())));
 
@@ -823,7 +837,11 @@ public class ExportTool {
 		elmSegment.addAttribute(new Attribute("ID", s.getLabel() + "_" + s.getHl7Version().replaceAll("\\.", "-")));
 		elmSegment.addAttribute(new Attribute("Name", this.str(s.getName())));
 		elmSegment.addAttribute(new Attribute("Label", this.str(s.getLabel())));
-		elmSegment.addAttribute(new Attribute("Description", this.str(s.getDescription())));
+		if(s.getDescription() == null || s.getDescription().equals("")){
+			elmSegment.addAttribute(new Attribute("Description", "NoDesc"));	
+		}else {
+			elmSegment.addAttribute(new Attribute("Description", this.str(s.getDescription())));
+		}
 
 		if (s.getName().equals("OBX") || s.getName().equals("MFA") || s.getName().equals("MFE")) {
 			String targetPosition = null;
@@ -948,11 +966,21 @@ public class ExportTool {
 			nu.xom.Element elmField = new nu.xom.Element("Field");
 			elmField.addAttribute(new Attribute("Name", this.str(f.getName())));
 			elmField.addAttribute(new Attribute("Usage", this.str(f.getUsage().toString())));
-			elmField.addAttribute(
-					new Attribute("Datatype", this.str(d.getLabel() + "_" + d.getHl7Version().replaceAll("\\.", "-"))));
-			elmField.addAttribute(new Attribute("MinLength", "" + f.getMinLength()));
-			if (f.getMaxLength() != null && !f.getMaxLength().equals(""))
-				elmField.addAttribute(new Attribute("MaxLength", this.str(f.getMaxLength())));
+			elmField.addAttribute(new Attribute("Datatype", this.str(d.getLabel() + "_" + d.getHl7Version().replaceAll("\\.", "-"))));
+			
+			if (f.getMinLength() == null || f.getMinLength().equals("") || f.getMinLength().equals("NA")){
+				elmField.addAttribute(new Attribute("MinLength", "NA"));
+				elmField.addAttribute(new Attribute("MaxLength", "NA"));
+			}else{
+				if(f.getMaxLength() != null && !f.getMaxLength().equals("")){
+					elmField.addAttribute(new Attribute("MinLength", "" +  f.getMinLength()));		
+					elmField.addAttribute(new Attribute("MaxLength", this.str(f.getMaxLength())));
+				}else {
+					elmField.addAttribute(new Attribute("MinLength", "NA"));
+					elmField.addAttribute(new Attribute("MaxLength", "NA"));
+				}
+			}
+
 			if (f.getConfLength() != null && !f.getConfLength().equals(""))
 				elmField.addAttribute(new Attribute("ConfLength", this.str(f.getConfLength())));
 
