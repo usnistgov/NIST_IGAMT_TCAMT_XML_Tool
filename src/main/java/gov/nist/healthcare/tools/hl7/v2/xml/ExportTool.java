@@ -24,11 +24,13 @@ import org.apache.commons.io.IOUtils;
 
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Code;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Component;
+import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.DTComponent;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Datatype;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.DocumentMetaData;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.DynamicMappingItem;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Field;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Group;
+import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.IGDocumentConfiguration;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Message;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.Profile;
 import gov.nist.healthcare.tools.hl7.v2.igamt.lite.domain.ProfileMetaData;
@@ -765,21 +767,9 @@ public class ExportTool {
 				elmComponent.addAttribute(new Attribute("Name", this.str(c.getName())));
 				elmComponent.addAttribute(new Attribute("Usage", this.str(c.getUsage().toString())));
 				elmComponent.addAttribute(new Attribute("Datatype", this.str(componentDatatype.getLabel() + "_" + componentDatatype.getHl7Version().replaceAll("\\.", "-"))));
-				if (c.getMinLength() == null || c.getMinLength().equals("") || c.getMinLength().equals("NA")){
-					elmComponent.addAttribute(new Attribute("MinLength", "NA"));
-					elmComponent.addAttribute(new Attribute("MaxLength", "NA"));
-				}else{
-					if(c.getMaxLength() != null && !c.getMaxLength().equals("")){
-						elmComponent.addAttribute(new Attribute("MinLength", "" +  c.getMinLength()));		
-						elmComponent.addAttribute(new Attribute("MaxLength", this.str(c.getMaxLength())));
-					}else {
-						elmComponent.addAttribute(new Attribute("MinLength", "NA"));
-						elmComponent.addAttribute(new Attribute("MaxLength", "NA"));
-					}
-				}
-
-				if (c.getConfLength() != null && !c.getConfLength().equals(""))
-					elmComponent.addAttribute(new Attribute("ConfLength", this.str(c.getConfLength())));
+				elmComponent.addAttribute(new Attribute("MinLength", this.str(c.getMinLength())));
+				elmComponent.addAttribute(new Attribute("MaxLength", this.str(c.getMaxLength())));
+				elmComponent.addAttribute(new Attribute("ConfLength", this.str(c.getConfLength())));
 
 				List<ValueSetBinding> bindings = findBinding(d.getValueSetBindings(), c.getPosition());
 				if (bindings.size() > 0) {
@@ -804,22 +794,27 @@ public class ExportTool {
 							}
 						}
 					}
+					
+					IGDocumentConfiguration config = new WebBeanConfig().igDocumentConfig();
+					DTComponent dtComponent = new DTComponent();
+					dtComponent.setDtName(componentDatatype.getName());
+					dtComponent.setLocation(c.getPosition());
+					if(config.getValueSetAllowedDTs().contains(componentDatatype.getName()) || config.getValueSetAllowedComponents().contains(dtComponent)){
+						if (!bindingString.equals(""))
+							elmComponent.addAttribute(
+									new Attribute("Binding", bindingString.substring(0, bindingString.length() - 1)));
+						if (bindingStrength != null)
+							elmComponent.addAttribute(new Attribute("BindingStrength", bindingStrength));
 
-					if (!bindingString.equals(""))
-						elmComponent.addAttribute(
-								new Attribute("Binding", bindingString.substring(0, bindingString.length() - 1)));
-					if (bindingStrength != null)
-						elmComponent.addAttribute(new Attribute("BindingStrength", bindingStrength));
-
-					if (componentDatatype != null && componentDatatype.getComponents() != null
-							&& componentDatatype.getComponents().size() > 0) {
-						if (bindingLocation != null) {
-							bindingLocation = bindingLocation.replaceAll("\\s+", "").replaceAll("or", ":");
-						} else {
-							elmComponent.addAttribute(new Attribute("BindingLocation", "1"));
-						}
+						if (componentDatatype != null && componentDatatype.getComponents() != null
+								&& componentDatatype.getComponents().size() > 0) {
+							if (bindingLocation != null) {
+								bindingLocation = bindingLocation.replaceAll("\\s+", "").replaceAll("or", ":");
+							} else {
+								elmComponent.addAttribute(new Attribute("BindingLocation", "1"));
+							}
+						}		
 					}
-
 				}
 
 				if (c.isHide())
@@ -967,19 +962,9 @@ public class ExportTool {
 			elmField.addAttribute(new Attribute("Name", this.str(f.getName())));
 			elmField.addAttribute(new Attribute("Usage", this.str(f.getUsage().toString())));
 			elmField.addAttribute(new Attribute("Datatype", this.str(d.getLabel() + "_" + d.getHl7Version().replaceAll("\\.", "-"))));
-			
-			if (f.getMinLength() == null || f.getMinLength().equals("") || f.getMinLength().equals("NA")){
-				elmField.addAttribute(new Attribute("MinLength", "NA"));
-				elmField.addAttribute(new Attribute("MaxLength", "NA"));
-			}else{
-				if(f.getMaxLength() != null && !f.getMaxLength().equals("")){
-					elmField.addAttribute(new Attribute("MinLength", "" +  f.getMinLength()));		
-					elmField.addAttribute(new Attribute("MaxLength", this.str(f.getMaxLength())));
-				}else {
-					elmField.addAttribute(new Attribute("MinLength", "NA"));
-					elmField.addAttribute(new Attribute("MaxLength", "NA"));
-				}
-			}
+			elmField.addAttribute(new Attribute("MinLength", this.str(f.getMinLength())));
+			elmField.addAttribute(new Attribute("MaxLength", this.str(f.getMaxLength())));
+			elmField.addAttribute(new Attribute("ConfLength", this.str(f.getConfLength())));
 
 			if (f.getConfLength() != null && !f.getConfLength().equals(""))
 				elmField.addAttribute(new Attribute("ConfLength", this.str(f.getConfLength())));
@@ -1006,21 +991,23 @@ public class ExportTool {
 						}
 					}
 				}
+				
+				IGDocumentConfiguration config = new WebBeanConfig().igDocumentConfig();
+				if(config.getValueSetAllowedDTs().contains(d.getName())){
+					if (!bindingString.equals(""))
+						elmField.addAttribute(
+								new Attribute("Binding", bindingString.substring(0, bindingString.length() - 1)));
+					if (bindingStrength != null)
+						elmField.addAttribute(new Attribute("BindingStrength", bindingStrength));
 
-				if (!bindingString.equals(""))
-					elmField.addAttribute(
-							new Attribute("Binding", bindingString.substring(0, bindingString.length() - 1)));
-				if (bindingStrength != null)
-					elmField.addAttribute(new Attribute("BindingStrength", bindingStrength));
-
-				if (d != null && d.getComponents() != null && d.getComponents().size() > 0) {
-					if (bindingLocation != null) {
-						bindingLocation = bindingLocation.replaceAll("\\s+", "").replaceAll("or", ":");
-					} else {
-						elmField.addAttribute(new Attribute("BindingLocation", "1"));
-					}
+					if (d != null && d.getComponents() != null && d.getComponents().size() > 0) {
+						if (bindingLocation != null) {
+							bindingLocation = bindingLocation.replaceAll("\\s+", "").replaceAll("or", ":");
+						} else {
+							elmField.addAttribute(new Attribute("BindingLocation", "1"));
+						}
+					}	
 				}
-
 			}
 
 			if (f.isHide())
